@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gladius Arena</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e0e0f;
+    --panel:#151517;
+    --panel2:#1b1b1e;
+    --edge:#2a2a2f;
+    --gold:#d4af37;
+    --gold2:#bfa133;
+    --text:#e9e9ea;
+    --muted:#bcbcc2;
+    --accent:#6f5a1b;
+    --red:#c75a5a;
+    --green:#4fa36d;
+    --blue:#5b8bd6;
+    --shadow: rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:'Cinzel',serif; color:var(--text); background:
+    radial-gradient(1000px 500px at 50% -60%, #3b3b3b33, transparent 70%),
+    linear-gradient(180deg, #181819 0%, var(--bg) 50%, #0a0a0b 100%);
+    overflow-x:hidden;
+  }
+
+  /* Side torches */
+  .side-torches{
+    position:fixed; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:22px; font-size:2rem; z-index:50;
+    filter: drop-shadow(0 0 8px #ff7f50);
+  }
+  .side-left{ left:10px; }
+  .side-right{ right:10px; }
+  .torch-side{
+    animation: flicker 1.25s infinite alternate ease-in-out;
+    text-shadow:0 0 6px #ffb347,0 0 12px #ff7f50,0 0 20px #ff4500;
+  }
+  @keyframes flicker{
+    0%{ transform:translateY(0px) rotate(-1deg); filter:hue-rotate(0deg) brightness(1); }
+    50%{ transform:translateY(-1px) rotate(1deg); filter:hue-rotate(10deg) brightness(1.1); }
+    100%{ transform:translateY(0px) rotate(0deg); filter:hue-rotate(0deg) brightness(1); }
+  }
+
+  header{
+    text-align:center; padding:34px 20px;
+    background:linear-gradient(180deg,#0b0b0b,#0f0f10);
+    border-bottom:2px solid var(--gold);
+    position:relative; z-index:5;
+  }
+  header h1{
+    font-weight:900; font-size:3.2rem; margin:0 0 6px; color:var(--gold);
+    text-shadow:0 0 4px #a3872a, 0 0 8px var(--accent);
+    letter-spacing:.5px;
+    animation: titleGlow 3s ease-in-out infinite alternate;
+  }
+  @keyframes titleGlow{
+    0%{ text-shadow:0 0 4px #a3872a, 0 0 8px var(--accent); }
+    100%{ text-shadow:0 0 8px #c9a437, 0 0 16px #896d26; }
+  }
+  header p{ margin:0; color:#d8d8da; letter-spacing:.3px; }
+
+  .coin{
+    position:fixed; top:10px; right:16px; z-index:60;
+    background:#111214; border:1px solid var(--gold); color:var(--gold);
+    padding:8px 14px; border-radius:10px; box-shadow:0 8px 24px var(--shadow);
+    font-weight:700;
+  }
+
+  nav{
+    display:flex; gap:10px; justify-content:center;
+    background:#121215; padding:12px 10px; border-bottom:1px solid var(--edge);
+    position:sticky; top:0; z-index:20;
+  }
+  .btn{
+    border:none; border-radius:10px; cursor:pointer; font-weight:700;
+    padding:12px 18px; color:#111; background:linear-gradient(180deg,var(--gold),var(--gold2));
+    box-shadow:0 10px 24px rgba(212,175,55,.25);
+    transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    font-family:'Cinzel',serif;
+  }
+  .btn:hover{ transform:translateY(-1px); filter:brightness(1.05); box-shadow:0 16px 28px rgba(212,175,55,.32); }
+  .btn.small{ padding:9px 12px; border-radius:8px; }
+  .btn.red{ background:linear-gradient(180deg,#d56a6a,#b94e4e); color:#fff; box-shadow:0 12px 26px rgba(199,90,90,.35); }
+  .btn.blue{ background:linear-gradient(180deg,#6a90d5,#4f73b8); color:#fff; box-shadow:0 12px 26px rgba(91,139,214,.35); }
+  .btn.green{ background:linear-gradient(180deg,#5bb27a,#3f9460); color:#fff; box-shadow:0 12px 26px rgba(79,163,109,.35); }
+  .btn.ghost{ background:#1d1d21; color:#e9e9ea; border:1px solid #2b2b31; box-shadow:none; }
+
+  .wrap{ max-width:1100px; margin:24px auto 40px; padding:0 20px; }
+  .panel{
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--edge); border-radius:16px; overflow:hidden;
+    box-shadow:0 16px 40px var(--shadow);
+    margin-bottom:26px;
+    animation: panelRise .4s ease both;
+  }
+  @keyframes panelRise{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .panel-header{
+    padding:16px 20px; border-bottom:1px solid var(--edge);
+    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg,#1f1f22,#19191c);
+  }
+  .panel-title{ color:var(--gold); font-weight:800; letter-spacing:.8px; }
+  .panel-sub{ color:var(--muted); font-size:.95rem; }
+  .panel-body{ padding:20px; }
+
+  .grid{ display:grid; gap:16px; }
+  .grid.two{ grid-template-columns:1fr 1fr; }
+  .grid.three{ grid-template-columns:repeat(3,1fr); }
+  .grid.auto{ grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
+
+  .card{
+    background:#19191c; border:1px solid #2b2b31; border-radius:12px; padding:14px;
+    transition:transform .16s ease, box-shadow .16s ease, border .2s ease;
+    position:relative; overflow:hidden;
+  }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 12px 28px var(--shadow); border-color:#3a3a41; }
+  .muted{ color:var(--muted); }
+
+  .portrait{
+    width:120px; height:120px; border:2px solid var(--gold); border-radius:14px;
+    background:radial-gradient(120px 120px at 50% 40%, #2b2b30, #1f1f22);
+    display:flex; align-items:center; justify-content:center; margin-bottom:10px;
+    box-shadow:0 10px 24px var(--shadow);
+    transition:transform .28s ease, box-shadow .28s ease, filter .28s ease;
+  }
+  .portrait span{ font-size:2.8rem; }
+  .portrait:hover{ transform:translateY(-2px) scale(1.02); filter:brightness(1.03); }
+
+  .sparkle{
+    position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(6px 6px at 18% 20%, rgba(255,255,255,.15), transparent 50%),
+                radial-gradient(6px 6px at 78% 60%, rgba(255,255,255,.08), transparent 50%);
+    animation: drift 6s linear infinite;
+  }
+  @keyframes drift{ 0%{transform:translateX(0)} 100%{transform:translateX(12px)} }
+
+  .hpbar{
+    height:14px; background:#2a2a2e; border-radius:8px; overflow:hidden;
+    border:1px solid #34343a; margin:8px 0 12px;
+  }
+  .hpbar > span{ display:block; height:100%; width:100%;
+    background:linear-gradient(90deg,#57b879,#4fa36d);
+    transition:width .5s ease, filter .25s ease;
+    filter:saturate(1.1);
+  }
+  .hpbar.enemy > span{ background:linear-gradient(90deg,#d86464,#c75a5a); }
+
+  .statbar{ height:12px; background:#222227; border-radius:7px; overflow:hidden; margin-top:6px; }
+  .statbar > span{ display:block; height:100%; width:40%;
+    background:linear-gradient(90deg,#8b6d31,var(--gold)); }
+
+  .list{ margin:0; padding-left:18px; }
+  .list li{ margin:6px 0; }
+
+  .log{ height:200px; background:#141416; border:1px solid #2b2b31; border-radius:12px; padding:12px; overflow:auto; font-size:.95rem; }
+  .log p{ margin:6px 0; opacity:0; animation:fadeIn .6s forwards; }
+  .log p strong{ color:var(--gold); }
+  @keyframes fadeIn{ to{opacity:1;} }
+
+  /* Action button styling */
+  .action-btn{
+    display:inline-block; text-align:center;
+    border-radius:10px; padding:10px 12px;
+    font-weight:700; cursor:pointer; border:none;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .action-btn.attack{ background:linear-gradient(180deg,#d56a6a,#b94e4e); color:#fff; box-shadow:0 12px 26px rgba(199,90,90,.35); }
+  .action-btn.defend{ background:linear-gradient(180deg,#6a90d5,#4f73b8); color:#fff; box-shadow:0 12px 26px rgba(91,139,214,.35); }
+  .action-btn.buff{ background:linear-gradient(180deg,#5bb27a,#3f9460); color:#fff; box-shadow:0 12px 26px rgba(79,163,109,.35); }
+  .action-btn:hover{ transform:translateY(-1px) scale(1.02); }
+
+  /* Screen shake on crit */
+  .shake{ animation:shake .5s ease; }
+  @keyframes shake{
+    0%{ transform:translate(0,0); }
+    20%{ transform:translate(-10px,0); }
+    40%{ transform:translate(10px,0); }
+    60%{ transform:translate(-10px,0); }
+    80%{ transform:translate(10px,0); }
+    100%{ transform:translate(0,0); }
+  }
+
+  /* Battle portrait animations */
+  .attack-anim{ transform: translateX(26px) scale(1.06) !important; }
+  .hit-anim{ filter: brightness(1.35) saturate(1.5) !important; }
+  .defend-anim{ box-shadow:0 0 20px #5b8bd6 !important; }
+  .buff-anim{ box-shadow:0 0 20px #54a773 !important; }
+
+  @media (max-width:980px){
+    .grid.two{ grid-template-columns:1fr; }
+  }
+.bar button {
+    padding: 14px 32px;
+    font-size: 20px;
+    background: #3b2f1e;
+    border: 3px solid #a67c52;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 280px;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    color: #f5e6c8;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .bar button:hover {
+    background: #5a4225;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(166,124,82,0.35);
+  }
+
+</style>
+</head>
+<body>
+  <!-- Side torches only -->
+  <div class="side-torches side-left">
+    <span class="torch-side">🔥</span>
+    <span class="torch-side">🔥</span>
+    <span class="torch-side">🔥</span>
+  </div>
+  <div class="side-torches side-right">
+    <span class="torch-side">🔥</span>
+    <span class="torch-side">🔥</span>
+    <span class="torch-side">🔥</span>
+  </div>
+
+  <header>
+    <h1>Gladius Arena</h1>
+    <p>Enter the Colosseum. Train for glory. Rise through the sands.</p>
+  </header>
+
+  <div class="coin" id="coinCounter">Coins: 50</div>
+
+  <nav>
+    <button class="btn" onclick="showView('home')">Home</button>
+    <button class="btn" onclick="showView('lore')">Play</button>
+<div class="bar">
+    <button class="back-btn" onclick="goBack()">⬅ Back</button>
+</div>
+  </nav>
+
+  <div class="wrap">
+    <!-- HOME -->
+    <section id="home" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Welcome to the arena</div>
+        <div class="panel-sub">Choose your path to glory</div>
+      </div>
+      <div class="panel-body grid two">
+        <div class="card">
+          <div class="sparkle"></div>
+          <h3 style="margin-top:0;">How it works</h3>
+          <ul class="list">
+            <li><strong>Begin:</strong> Read the lore, then choose and customize a novice gladiator.</li>
+            <li><strong>Hub:</strong> View stats, train, buy weapons, learn moves.</li>
+            <li><strong>Arenas:</strong> Pick an arena; read its lore; fight for rewards.</li>
+            <li><strong>Progress:</strong> Victories yield coins and scale opponents; losses still pay small rewards.</li>
+          </ul>
+          <div style="margin-top:12px;">
+            <button class="btn green" onclick="showView('lore')">Begin your ascent</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="sparkle"></div>
+          <h3 style="margin-top:0;">Profile</h3>
+          <div class="portrait" id="profilePortrait"><span>⚔️</span></div>
+          <p class="muted" id="profileView">No gladiator chosen yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- LORE -->
+    <section id="lore" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title">The sands of Rome</div>
+        <div class="panel-sub">Prologue</div>
+      </div>
+      <div class="panel-body">
+        <div class="card lore">
+          <p>
+            The crowd’s roar shakes marble and bone. Beneath the eyes of senators and gods,
+            names are carved into eternity by grit and steel. You are unknown, a whisper in the tunnels—
+            yet fate opens its hand. Step into the light; let the sands judge your worth.
+          </p>
+        </div>
+        <div style="margin-top:12px;">
+          <button class="btn" onclick="showView('select')">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELECT -->
+    <section id="select" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title">Choose your gladiator</div>
+        <div class="panel-sub">Novice cohort</div>
+      </div>
+      <div class="panel-body grid auto" id="selectGrid"></div>
+    </section>
+
+    <!-- CUSTOMIZE -->
+    <section id="customize" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title">Customize your gladiator</div>
+        <div class="panel-sub">Make them your own</div>
+      </div>
+      <div class="panel-body grid two">
+        <div class="card">
+          <h3 style="margin-top:0;">Identity</h3>
+          <label><strong>Name:</strong></label>
+          <input id="gladName" placeholder="Enter a name" style="padding:10px; margin-top:8px; width:100%; border-radius:8px; border:1px solid #2b2b31; background:#121214; color:#e9e9ea;">
+          <div style="margin-top:10px;">
+            <label><strong>Emblem color:</strong></label><br>
+            <input type="color" id="gladColor" value="#d4af37" style="margin-top:6px;">
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Appearance</h3>
+          <p class="muted">Choose a style:</p>
+          <div class="grid three">
+            <div class="card" style="text-align:center;">
+              <div class="portrait"><span>🗡️</span></div>
+              <button class="btn small" onclick="setAppearance('retiarius')">Retiarius</button>
+            </div>
+            <div class="card" style="text-align:center;">
+              <div class="portrait"><span>🛡️</span></div>
+              <button class="btn small" onclick="setAppearance('murmillo')">Murmillo</button>
+            </div>
+            <div class="card" style="text-align:center;">
+              <div class="portrait"><span>🏛️</span></div>
+              <button class="btn small" onclick="setAppearance('statue')">Statue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <button class="btn green" onclick="finalizeCustomization()">Confirm</button>
+      </div>
+    </section>
+
+    <!-- HUB -->
+    <section id="hub" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title">Gladiator hub</div>
+        <div class="panel-sub">Train, unlock, equip</div>
+      </div>
+      <div class="panel-body grid two">
+        <div class="card">
+          <div class="sparkle"></div>
+          <h3 style="margin-top:0;">Status</h3>
+          <div class="portrait" id="hubPortrait"><span>⚔️</span></div>
+          <p id="hubStatus"></p>
+          <div class="grid three">
+            <div><strong>Strength</strong><div class="statbar"><span id="barStr"></span></div></div>
+            <div><strong>Agility</strong><div class="statbar"><span id="barAgi"></span></div></div>
+            <div><strong>Stamina</strong><div class="statbar"><span id="barSta"></span></div></div>
+            <div><strong>Defense</strong><div class="statbar"><span id="barDef"></span></div></div>
+            <div><strong>Charisma</strong><div class="statbar"><span id="barCha"></span></div></div>
+          </div>
+          <div style="margin-top:14px;" class="grid three">
+            <button class="btn small" onclick="train('str')">Train STR (20)</button>
+            <button class="btn small" onclick="train('agi')">Train AGI (20)</button>
+            <button class="btn small" onclick="train('sta')">Train STA (20)</button>
+            <button class="btn small" onclick="train('def')">Train DEF (20)</button>
+            <button class="btn small" onclick="train('cha')">Train CHA (20)</button>
+          </div>
+          <div style="margin-top:14px;">
+            <button class="btn red" onclick="showView('arenas')">Select arena</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="sparkle"></div>
+          <h3 style="margin-top:0;">Armory</h3>
+          <p class="muted">Weapon: <span id="weaponView">None</span></p>
+          <div id="shopWeapons" class="grid auto"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Abilities (learned)</h3>
+          <div id="learnedMoves" class="grid auto"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Abilities (available)</h3>
+          <div id="availableMoves" class="grid auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARENAS -->
+    <section id="arenas" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title">Select an arena</div>
+        <div class="panel-sub">Choose your battleground</div>
+      </div>
+      <div class="panel-body grid auto" id="arenaGrid"></div>
+    </section>
+
+    <!-- ARENA LORE -->
+    <section id="arenaLore" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title" id="arenaTitle">Arena</div>
+        <div class="panel-sub">Lore</div>
+      </div>
+      <div class="panel-body">
+        <div class="card lore"><p id="arenaText"></p></div>
+        <div style="margin:14px 0;">
+          <button class="btn red" onclick="startBattle()">⚔ Into Battle</button>
+          <button class="btn ghost" onclick="showView('arenas')">Back</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BATTLE -->
+    <section id="battle" class="panel" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-title" id="battleArenaTitle">Arena</div>
+        <div class="panel-sub" id="roundView">Round 1</div>
+      </div>
+      <div class="panel-body grid two" id="battleScreen">
+        <div class="card">
+          <h3 style="margin-top:0;" id="playerName">Champion</h3>
+          <div class="portrait" id="playerPortrait"><span>🛡️</span></div>
+          <p class="muted" id="playerStats">STR 0 | AGI 0 | STA 0 | DEF 0</p>
+          <div class="hpbar"><span id="playerHPBar"></span></div>
+          <div id="actionGrid" class="grid auto"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;" id="enemyName">Opponent</h3>
+          <div class="portrait" id="enemyPortrait"><span>👹</span></div>
+          <p class="muted" id="enemyStats">STR 0 | AGI 0 | STA 0 | DEF 0</p>
+          <div class="hpbar enemy"><span id="enemyHPBar"></span></div>
+          <div class="log" id="battleLog"></div>
+        </div>
+      </div>
+      <div class="panel-body" style="display:flex; justify-content:space-between; align-items:center;">
+        <button class="btn ghost" onclick="showView('hub')">Retreat</button>
+        <button class="btn green" id="nextRoundBtn" style="display:none;" onclick="nextRound()">Next battle</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ----- Core State -----
+    const state = {
+      coins: 100,
+      player: null,
+      weapon: null,
+      round: 1,
+      enemy: null,
+      currentArena: null,
+      specialCDs: {},
+      appearance: { id:'murmillo', color:'#d4af37' }
+    };
+
+    // ----- Starters -----
+    const starters = [
+      { id:'marcus', name:'Marcus', str:3, agi:7, sta:8, def:3, cha:8, desc:'A nimble novice with steady resolve.' },
+      { id:'lucius', name:'Lucius', str:9, agi:3, sta:6, def:8, cha:5, desc:'Solid footing and beginner’s power.' },
+      { id:'valeria', name:'Valeria', str:2, agi:12, sta:12, def:3, cha:3, desc:'Swift and cunning, light on her feet.' },
+    ];
+
+    // ----- Arenas -----
+    const arenas = [
+      { id:'colosseum', name:'Colosseum', lore:'Beneath Rome’s vaulted sky, marble and blood remember every name. The great amphitheatre crowns legends and swallows the unready.' },
+      { id:'capua', name:'Amphitheatre of Capua', lore:'In Capua’s harsh sands, discipline is forged. Crowds are merciless, but the worthy learn to bend fear to their will.' },
+      { id:'provincial', name:'Provincial Arena', lore:'Away from the capital, grit outshines garlands. Here, survival is the only coin, and respect is carved with iron.' },
+      { id:'ostia', name:'Arena of Ostia', lore:'Sea winds carry salt and omen. Blades flash like waves—unyielding, rhythmic, relentless.' },
+      { id:'pompeii', name:'Amphitheatre of Pompeii', lore:'Ash remembers the fallen. In the shadow of Vesuvius, courage burns bright and brief.' },
+    ];
+
+    // ----- Weapons -----
+    const weaponTiers = [
+      { tier:1, items:[
+        { id:'gladius', name:'Gladius', cost:30, bonus:{str:2}, desc:'Reliable Roman sword.' },
+        { id:'hasta', name:'Hasta', cost:35, bonus:{str:1, agi:1}, desc:'Short spear with balanced reach.' },
+        { id:'net_dagger', name:'Net & Dagger', cost:40, bonus:{agi:2, cha:1}, desc:'Entangle, strike, sway the crowd.' },
+      ]},
+      { tier:2, items:[
+        { id:'trident', name:'Trident', cost:60, bonus:{agi:2, str:1}, desc:'Piercing reach and finesse.' },
+        { id:'spatha', name:'Spatha', cost:75, bonus:{str:2, def:1}, desc:'Long blade, steady guard.' },
+      ]},
+      { tier:3, items:[
+        { id:'warhammer', name:'Warhammer', cost:110, bonus:{str:3}, desc:'Crushing force. Handle with care.' },
+        { id:'tower_shield', name:'Tower Shield', cost:120, bonus:{def:3}, desc:'Immovable defense, limited mobility.' },
+      ]},
+      { tier:4, items:[
+        { id:'imperial_gladius', name:'Imperial Gladius', cost:180, bonus:{str:3, agi:2}, desc:'Masterwork blade for glory.' },
+        { id:'divine_standard', name:'Divine Standard', cost:200, bonus:{cha:3, def:1}, desc:'The crowd bends to your will.' },
+      ]},
+{ tier:5, items:[
+  { id:'scythe', name:'Scythe of Nemesis', cost:250, bonus:{str:4, agi:2}, desc:'A curved blade that reaps both wheat and warriors.' },
+  { id:'flail', name:'Iron Flail', cost:270, bonus:{str:3, def:2}, desc:'A brutal chain weapon that smashes through shields.' },
+]},
+{ tier:6, items:[
+  { id:'phoenix_spear', name:'Phoenix Spear', cost:320, bonus:{agi:3, cha:2}, desc:'Said to ignite with the crowd’s roar.' },
+  { id:'hydra_blade', name:'Hydra Blade', cost:350, bonus:{str:4, sta:2}, desc:'Each strike feels like many heads striking at once.' },
+  { id:'Sabreoflight', name:'Sabre of Light', cost:700, bonus:{str:7, cha:4}, desc:'From the Clouds of Jerusalem, this sword has vanquished many an enemy of the Church.' },
+]}
+
+    ];
+
+    // ----- Moves (base + expanded quick set) -----
+    const baseMoves = [
+      { id:'attack', name:'Basic Strike', type:'attack', req:{str:0}, cost:0, power:1.0, cd:0, desc:'A fundamental blow.' },
+      { id:'defend', name:'Guard Stance', type:'defend', req:{def:0}, cost:0, power:0, cd:0, desc:'Brace to reduce damage and regain composure.' },
+      { id:'heavy', name:'Heavy Strike', type:'attack', req:{str:5}, cost:25, power:1.6, cd:1, desc:'A committed, crushing strike.' },
+      { id:'bash', name:'Shield Bash', type:'attack', req:{def:6}, cost:30, power:1.2, cd:1, desc:'Stagger with a shielded slam.' },
+      { id:'jab', name:'Quick Jab', type:'attack', req:{agi:6}, cost:25, power:1.1, cd:0, desc:'A precise, swift hit.' },
+      { id:'taunt', name:'Crowd Taunt', type:'buff', req:{cha:5}, cost:20, power:0, cd:2, desc:'Rile the crowd; lower enemy focus.' },
+      { id:'rally', name:'Rally Cry', type:'buff', req:{cha:7}, cost:35, power:0, cd:3, desc:'Steady your stance; gain minor regen.' },
+    ];
+    const expandedAttacks = [
+      { id:'whirl', name:'Whirlwind Slash', type:'attack', req:{str:7}, cost:40, power:1.35, cd:1, desc:'Turn and cut with momentum.' },
+      { id:'lunge', name:'Lunging Thrust', type:'attack', req:{agi:7}, cost:40, power:1.3, cd:0, desc:'Close distance with a piercing hit.' },
+      { id:'overhead', name:'Overhead Cleave', type:'attack', req:{str:8}, cost:50, power:1.5, cd:1, desc:'High arc with brutal follow-through.' },
+      { id:'feint', name:'Feint and Strike', type:'attack', req:{agi:8}, cost:50, power:1.25, cd:0, desc:'Deceive the guard, then hit true.' },
+      
+    ];
+    const moveCatalogue = [...baseMoves, ...expandedAttacks];
+
+    // ----- UI helpers -----
+    function showView(id){
+      ['home','lore','select','customize','hub','arenas','arenaLore','battle'].forEach(v=>{
+        const el = document.getElementById(v);
+        if(el) el.style.display = (v===id ? '' : 'none');
+      });
+      updateCoins();
+      if(id==='select') renderSelect();
+      if(id==='hub') renderHub();
+      if(id==='arenas') renderArenas();
+    }
+    function updateCoins(){ document.getElementById('coinCounter').textContent = 'Coins: ' + state.coins; }
+    function pct(x){ return Math.min(100, Math.round((x/20)*100)); }
+    function refreshProfile(){
+      const pv = document.getElementById('profileView');
+      if(!pv) return;
+      if(!state.player){
+        pv.textContent = 'No gladiator chosen yet.';
+      } else {
+        const p = state.player;
+        pv.textContent = `${p.name} — STR ${p.str} | AGI ${p.agi} | STA ${p.sta} | DEF ${p.def} | CHA ${p.cha} — Weapon: ${state.weapon?state.weapon.name:'None'} — Coins: ${state.coins}`;
+      }
+    }
+
+    // ----- Selection & Customize -----
+    function renderSelect(){
+      const grid = document.getElementById('selectGrid');
+      grid.innerHTML = '';
+      starters.forEach(g=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <h4>${g.name}</h4>
+          <p class="muted">${g.desc}</p>
+          <p>STR ${g.str} | AGI ${g.agi} | STA ${g.sta} | DEF ${g.def} | CHA ${g.cha}</p>
+          <div class="statbar"><span style="width:${pct(g.str)}%"></span></div>
+          <div class="statbar"><span style="width:${pct(g.agi)}%"></span></div>
+          <div class="statbar"><span style="width:${pct(g.sta)}%"></span></div>
+          <div class="statbar"><span style="width:${pct(g.def)}%"></span></div>
+          <div class="statbar"><span style="width:${pct(g.cha)}%"></span></div>
+          <div style="margin-top:10px;">
+            <button class="btn" onclick="chooseGladiator('${g.id}')">Select</button>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+    }
+    function chooseGladiator(id){
+      const g = starters.find(x=>x.id===id);
+      state.player = { ...g, maxHP: 90 + g.sta*5, hp: 90 + g.sta*5, dodge: g.agi*0.02, crit: g.agi*0.03, learned: ['attack','defend'] };
+      state.round = 1;
+      refreshProfile();
+      showView('customize');
+    }
+    function setAppearance(id){ state.appearance.id = id; }
+    function finalizeCustomization(){
+      const name = (document.getElementById('gladName').value || '').trim();
+      const color = document.getElementById('gladColor').value;
+      if(name) state.player.name = name;
+      if(color) state.appearance.color = color;
+      saveProgress();
+      showView('hub');
+    }
+
+    // ----- Hub -----
+    function renderHub(){
+      if(!state.player) return;
+      const p = state.player;
+      // Status
+      document.getElementById('hubStatus').innerHTML = `
+        <strong style="color:${state.appearance.color}">${p.name}</strong><br>
+        STR ${p.str} | AGI ${p.agi} | STA ${p.sta} | DEF ${p.def} | CHA ${p.cha}<br>
+        HP ${p.hp}/${p.maxHP} — Coins ${state.coins}
+      `;
+      // Portrait color edge
+      document.getElementById('hubPortrait').style.borderColor = state.appearance.color;
+      document.getElementById('profilePortrait').style.borderColor = state.appearance.color;
+
+      // Bars
+      document.getElementById('barStr').style.width = pct(p.str)+'%';
+      document.getElementById('barAgi').style.width = pct(p.agi)+'%';
+      document.getElementById('barSta').style.width = pct(p.sta)+'%';
+      document.getElementById('barDef').style.width = pct(p.def)+'%';
+      document.getElementById('barCha').style.width = pct(p.cha)+'%';
+
+      // Weapons shop
+      const shopEl = document.getElementById('shopWeapons');
+      shopEl.innerHTML = '';
+      weaponTiers.forEach(t=>{
+        const group = document.createElement('div');
+        group.className = 'card';
+        group.innerHTML = `<h4>Tier ${t.tier} armory</h4>`;
+        t.items.forEach(w=>{
+          const canAfford = state.coins >= w.cost;
+          const btn = `<button class="btn small" ${canAfford?'':'disabled'} onclick="buyWeapon('${w.id}')">${canAfford?'Buy':'Need'} (${w.cost})</button>`;
+          const row = document.createElement('div');
+          row.style.marginTop = '6px';
+          row.innerHTML = `<strong>${w.name}</strong> — <span class="muted">${w.desc}</span><br><span class="muted">Bonus: ${Object.entries(w.bonus).map(([k,v])=>`${k.toUpperCase()}+${v}`).join(', ')}</span><br>${btn}`;
+          group.appendChild(row);
+        });
+        shopEl.appendChild(group);
+      });
+      document.getElementById('weaponView').textContent = state.weapon ? state.weapon.name : 'None';
+
+      renderMoves();
+    }
+    function buyWeapon(id){
+      const w = weaponTiers.flatMap(t=>t.items).find(x=>x.id===id);
+      if(!w) return;
+      if(state.coins < w.cost){ alert('Not enough coins.'); return; }
+      state.coins -= w.cost;
+      state.weapon = w;
+      Object.entries(w.bonus).forEach(([k,v])=>{ state.player[k] += v; });
+      state.player.maxHP = 90 + state.player.sta*5;
+      state.player.hp = Math.min(state.player.hp + 10, state.player.maxHP);
+      saveProgress();
+      renderHub();
+      updateCoins();
+    }
+    function train(stat){
+      if(!state.player) return alert('Choose a gladiator first.');
+      const cost = 20;
+      if(state.coins < cost) return alert('Not enough coins.');
+      state.coins -= cost;
+      state.player[stat] += 1;
+      if(stat==='sta'){ state.player.maxHP += 5; state.player.hp = state.player.maxHP; }
+      state.player.dodge = state.player.agi * 0.02;
+      state.player.crit = state.player.agi * 0.03;
+      saveProgress();
+      renderHub();
+      updateCoins();
+    }
+
+    function renderMoves(){
+      const learnedEl = document.getElementById('learnedMoves');
+      const availEl = document.getElementById('availableMoves');
+      learnedEl.innerHTML = '';
+      availEl.innerHTML = '';
+      const p = state.player;
+      const learnedSet = new Set(p.learned);
+
+      // Learned
+      p.learned.map(id => baseMoves.find(m=>m.id===id) || moveCatalogue.find(m=>m.id===id))
+               .filter(Boolean)
+               .forEach(m=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<strong>${m.name}</strong><br><span class="muted">${m.desc}</span>`;
+        learnedEl.appendChild(div);
+      });
+
+      // Available
+      moveCatalogue.forEach(m=>{
+        if(learnedSet.has(m.id)) return;
+        const reqOk = (m.req.str==null || p.str>=m.req.str) && (m.req.agi==null || p.agi>=m.req.agi) &&
+                      (m.req.def==null || p.def>=m.req.def) && (m.req.cha==null || p.cha>=m.req.cha);
+        const cost = Math.max(10, Math.round(m.cost||20));
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <strong>${m.name}</strong><br><span class="muted">${m.desc}</span><br>
+          <span class="muted">Req: ${['STR '+(m.req.str??0),'AGI '+(m.req.agi??0),'DEF '+(m.req.def??0),'CHA '+(m.req.cha??0)].join(' | ')}</span><br>
+          <button class="btn small" ${reqOk && state.coins>=cost?'':'disabled'} onclick="learnMove('${m.id}', ${cost})">${reqOk?'Learn':'Locked'} (${cost})</button>`;
+        availEl.appendChild(div);
+      });
+    }
+    function learnMove(id, cost){
+      if(state.coins < cost) return alert('Not enough coins.');
+      if(!state.player.learned.includes(id)) state.player.learned.push(id);
+      state.coins -= cost;
+      saveProgress();
+      renderHub();
+      updateCoins();
+    }
+
+    // ----- Arenas -----
+    function renderArenas(){
+      const grid = document.getElementById('arenaGrid');
+      grid.innerHTML = '';
+      arenas.forEach(a=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<h4 style="color:${state.appearance.color}">${a.name}</h4><p class="muted">${a.lore.slice(0,100)}...</p><button class="btn" onclick="showArenaLore('${a.id}')">Enter</button>`;
+        grid.appendChild(div);
+      });
+    }
+    function showArenaLore(id){
+      const a = arenas.find(x=>x.id===id);
+      if(!a) return;
+      state.currentArena = a;
+      document.getElementById('arenaTitle').textContent = a.name;
+      document.getElementById('arenaText').textContent = a.lore;
+      showView('arenaLore');
+    }
+
+    // ----- Battle + Animations -----
+    function startBattle(){
+      if(!state.player) return alert('Choose your gladiator first.');
+
+      // Enemy scaling
+      const scale = 1 + (state.round-1)*0.15;
+      const base = { str:4, agi:4, sta:5, def:4 };
+      state.enemy = {
+        name: ['Brutus','Cassius','Drusus','Livia','Severus'][Math.floor(Math.random()*5)],
+        str: Math.round(base.str * scale + state.round),
+        agi: Math.round(base.agi * scale + state.round),
+        sta: Math.round(base.sta * scale + state.round),
+        def: Math.round(base.def * scale + state.round),
+      };
+      state.enemy.maxHP = Math.round(90 * scale + state.enemy.sta*5);
+      state.enemy.hp = state.enemy.maxHP;
+      state.specialCDs = {};
+
+      document.getElementById('battleArenaTitle').textContent = state.currentArena?.name || 'Arena';
+      document.getElementById('roundView').textContent = `Round ${state.round}`;
+      document.getElementById('playerName').textContent = state.player.name;
+      document.getElementById('playerStats').textContent = `STR ${state.player.str} | AGI ${state.player.agi} | STA ${state.player.sta} | DEF ${state.player.def}`;
+      document.getElementById('enemyName').textContent = state.enemy.name;
+      document.getElementById('enemyStats').textContent = `STR ${state.enemy.str} | AGI ${state.enemy.agi} | STA ${state.enemy.sta} | DEF ${state.enemy.def}`;
+
+      // Portrait styles
+      document.getElementById('playerPortrait').style.borderColor = state.appearance.color;
+      document.getElementById('hubPortrait').style.borderColor = state.appearance.color;
+
+      clearLog();
+      log(`The crowd roars as <strong>${state.player.name}</strong> enters ${state.currentArena?.name || 'the arena'} to face <strong>${state.enemy.name}</strong>.`);
+
+      // Actions
+      renderBattleActions();
+      updateHPBars();
+      document.getElementById('nextRoundBtn').style.display = 'none';
+
+      showView('battle');
+    }
+
+    function renderBattleActions(){
+      const actions = document.getElementById('actionGrid');
+      actions.innerHTML = '';
+      const chosenMoves = state.player.learned
+        .map(id => baseMoves.find(m=>m.id===id) || moveCatalogue.find(m=>m.id===id))
+        .filter(Boolean)
+        .slice(0, 6);
+      const extras = moveCatalogue.filter(m=>m.type==='attack' && (state.player.str >= (m.req.str||0))).slice(0, 2);
+      chosenMoves.push(...extras);
+      chosenMoves.forEach(m=>{
+        const btn = document.createElement('button');
+        btn.className = 'action-btn ' + (m.type==='attack' ? 'attack' : (m.type==='defend'?'defend':'buff'));
+        btn.id = `mv_${m.id}`;
+        btn.textContent = `${m.name}${m.cd?` (${m.cd})`:''}`;
+        btn.onclick = ()=> doAction(m);
+        actions.appendChild(btn);
+      });
+      reflectCooldowns();
+    }
+
+    function reflectCooldowns(){
+      Object.entries(state.specialCDs).forEach(([id, cd])=>{
+        const el = document.getElementById(`mv_${id}`);
+        if(!el) return;
+        if(cd>0){ el.classList.add('cooldown'); el.textContent = el.textContent.replace(/\(\d+\)$/, `(${cd})`); el.onclick = null; }
+      });
+    }
+
+    function updateHPBars(){
+      document.getElementById('playerHPBar').style.width = Math.max(0, Math.round((state.player.hp/state.player.maxHP)*100)) + '%';
+      document.getElementById('enemyHPBar').style.width = Math.max(0, Math.round((state.enemy.hp/state.enemy.maxHP)*100)) + '%';
+    }
+
+    function clearLog(){ document.getElementById('battleLog').innerHTML=''; }
+    function log(msg){
+      const el = document.createElement('p');
+      el.innerHTML = msg;
+      const box = document.getElementById('battleLog');
+      box.appendChild(el);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function animatePortrait(id, animClass){
+      const el = document.getElementById(id);
+      el.classList.add(animClass);
+      setTimeout(()=>el.classList.remove(animClass), 420);
+    }
+    function screenShake(){ const bs=document.getElementById('battleScreen'); bs.classList.add('shake'); setTimeout(()=>bs.classList.remove('shake'),500); }
+
+    function rng(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function chance(p){ return Math.random()<p; }
+
+    function calcAttackDamage(move, attacker, defender){
+      const base = 6 + attacker.str + (state.weapon ? (state.weapon.bonus.str||0) : 0);
+      let dmg = Math.round(base * (move.power||1.0)) + rng(0,4);
+      const critChance = attacker.agi * 0.03;
+      if(chance(critChance)){
+        dmg = Math.round(dmg * 1.4);
+        log('<strong>Critical!</strong>');
+        screenShake();
+      }
+      const mitigation = 1 - Math.min(0.5, defender.def * 0.02);
+      dmg = Math.max(1, Math.round(dmg * mitigation));
+      return dmg;
+    }
+
+    function enemyAIDecision(){
+      const roll = Math.random();
+      if(roll < 0.15) return { type:'defend' };
+      if(roll < 0.3) return { type:'buff' };
+      return { type:'attack', power: 1.0 };
+    }
+
+    function doAction(move){
+      if(state.enemy.hp<=0 || state.player.hp<=0) return;
+      const cd = state.specialCDs[move.id]||0;
+      if(cd>0){ log('That move is cooling down.'); return; }
+
+      // Player turn
+      if(move.type==='attack'){
+        animatePortrait('playerPortrait','attack-anim');
+        setTimeout(()=>animatePortrait('enemyPortrait','hit-anim'), 160);
+        if(chance(state.enemy.agi*0.02)){ log(`${state.enemy.name} dodges your strike!`); }
+        else{
+          const dmg = calcAttackDamage(move, state.player, state.enemy);
+          state.enemy.hp -= dmg;
+          log(`<strong>${state.player.name}</strong> uses ${move.name} for ${dmg} damage.`);
+        }
+      } else if(move.type==='defend'){
+        animatePortrait('playerPortrait','defend-anim');
+        const heal = 4 + Math.floor(state.player.def/2);
+        state.player.hp = Math.min(state.player.maxHP, state.player.hp + heal);
+        log(`<strong>${state.player.name}</strong> braces and regains ${heal} stamina.`);
+      } else if(move.type==='buff'){
+        animatePortrait('playerPortrait','buff-anim');
+        if(move.id.startsWith('taunt')){ state.enemy.agi = Math.max(1, state.enemy.agi - 1); log('Your presence shakes the foe; their agility falters.'); }
+        else { state.player.def += 1; log('The crowd’s favor steels your guard.'); }
+      }
+      if(move.cd>0) state.specialCDs[move.id] = move.cd;
+
+      updateHPBars();
+      if(checkOutcome()) return;
+
+      // Enemy turn
+      const ai = enemyAIDecision();
+      if(ai.type==='attack'){
+        animatePortrait('enemyPortrait','attack-anim');
+        setTimeout(()=>animatePortrait('playerPortrait','hit-anim'), 160);
+        if(chance(state.player.dodge)){ log(`${state.player.name} evades the enemy’s blow!`); }
+        else{
+          const eMove = { power: ai.power||1.0, name:'Enemy Strike', type:'attack', cd:0 };
+          const dmg = calcAttackDamage(eMove, state.enemy, state.player);
+          state.player.hp -= dmg;
+          log(`${state.enemy.name} strikes for ${dmg} damage.`);
+        }
+      } else if(ai.type==='defend'){
+        animatePortrait('enemyPortrait','defend-anim');
+        const heal = 3 + Math.floor(state.enemy.def/2);
+        state.enemy.hp = Math.min(state.enemy.maxHP, state.enemy.hp + heal);
+        log(`${state.enemy.name} steadies and regains ${heal} stamina.`);
+      } else {
+        animatePortrait('enemyPortrait','buff-anim');
+        state.enemy.def += 1;
+        log(`${state.enemy.name} rallies their guard.`);
+      }
+
+      // Tick cooldowns
+      Object.keys(state.specialCDs).forEach(id=>{
+        if(state.specialCDs[id]>0) state.specialCDs[id] -= 1;
+      });
+
+      updateHPBars();
+      reflectCooldowns();
+      checkOutcome();
+    }
+
+    function checkOutcome(){
+      if(state.player.hp<=0 || state.enemy.hp<=0){
+        const win = state.player.hp>0;
+        if(win){
+          const reward = 30 + rng(5,15) + state.round*5;
+          state.coins += reward;
+          log(`<strong>Victory!</strong> You earn ${reward} coins.`);
+        } else {
+          const consolation = 10;
+          state.coins += consolation;
+          log(`<strong>Defeat.</strong> You collect ${consolation} coins and reflect.`);
+        }
+        updateCoins();
+        document.getElementById('nextRoundBtn').style.display = '';
+        saveProgress();
+        return true;
+      }
+      return false;
+    }
+
+    function nextRound(){
+      state.round += 1;
+      state.player.hp = state.player.maxHP;
+      startBattle();
+      document.getElementById('nextRoundBtn').style.display = 'none';
+    }
+
+    // ----- Save/Load -----
+    function saveProgress(){
+      const data = { coins:state.coins, player:state.player, weapon:state.weapon, round:state.round, appearance:state.appearance };
+      localStorage.setItem('ga_save', JSON.stringify(data));
+    }
+    function loadProgress(){
+      const raw = localStorage.getItem('ga_save');
+      if(!raw) return;
+      try{
+        const d = JSON.parse(raw);
+        Object.assign(state, d);
+        if(state.player){
+          state.player.maxHP = state.player.maxHP || (90 + state.player.sta*5);
+          state.player.hp = state.player.hp || state.player.maxHP;
+          state.player.dodge = state.player.agi * 0.02;
+          state.player.crit = state.player.agi * 0.03;
+          state.player.learned = Array.isArray(state.player.learned) ? state.player.learned : ['attack','defend'];
+        }
+      }catch(e){}
+    }
+
+    // ----- Init -----
+    function init(){
+      loadProgress();
+      refreshProfile();
+      showView('home');
+      updateCoins();
+    }
+    init();
+  </script>
+<script>
+function goBack() {
+  // Change "UI1.html" to whatever page you want the back button to lead to
+  window.location.href = "https://tealdragons78.github.io/Imperial-Arcade/";
+}
+</script>
+</body>
+</html>
